@@ -50,12 +50,19 @@ const ChatApp = () => {
   const [stressHistory, setStressHistory] = useState([]);
   const currentAudioRef = useRef(null);
   const currentAudioUrlRef = useRef(null);
+  const ttsAbortRef = useRef(null);      // AbortController for in-flight TTS requests
+  const isMountedRef = useRef(true);     // track mount state to prevent post-unmount playback
   const [messageEmotions, setMessageEmotions] = useState({});
   const [showMoodChart, setShowMoodChart] = useState(false);
   const messagesEndRef = useRef(null);
   const [ttsBanner, setTtsBanner] = useState(null); // { type: 'error'|'warning'|'info', title, message }
 
   const stopAllAudio = () => {
+    // Abort any in-flight TTS API request
+    if (ttsAbortRef.current) {
+      ttsAbortRef.current.abort();
+      ttsAbortRef.current = null;
+    }
     if (currentAudioRef.current) {
       currentAudioRef.current.pause();
       currentAudioRef.current.currentTime = 0;
@@ -73,7 +80,11 @@ const ChatApp = () => {
 
   // Stop all audio/speech when navigating away from chat
   useEffect(() => {
-    return () => stopAllAudio();
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      stopAllAudio();
+    };
   }, []);
 
   const startListening = () => {
@@ -223,13 +234,20 @@ const ChatApp = () => {
     const cleanContent = content.replace(/[*_#`[\]()]/g, "").trim();
     if (!cleanContent) return;
 
+    // Create an AbortController so we can cancel this request on unmount/new speak
+    const abortController = new AbortController();
+    ttsAbortRef.current = abortController;
+
     try {
       const response = await axios.post("/api/v1/chat/tts", {
         text: cleanContent,
         language: langName,
         playbackSpeed: playbackSpeed,
         voiceId: VOICE_PROFILES[langName]?.voiceId
-      }, { responseType: 'blob' });
+      }, { responseType: 'blob', signal: abortController.signal });
+
+      // If component unmounted or request was aborted while awaiting, bail out
+      if (!isMountedRef.current || abortController.signal.aborted) return;
 
       // ElevenLabs may return JSON error inside a blob — detect it
       const blob = response.data;
@@ -241,6 +259,9 @@ const ChatApp = () => {
         throw new Error(`ElevenLabs: ${reason}`);
       }
 
+      // Double-check mount state before playing
+      if (!isMountedRef.current) return;
+
       const audioBlob = new Blob([blob], { type: 'audio/mpeg' });
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
@@ -250,6 +271,7 @@ const ChatApp = () => {
 
       // Handle audio playback errors
       audio.onerror = () => {
+        if (!isMountedRef.current) return;
         console.error("Audio playback failed, falling back to browser TTS");
         showTtsBanner('warning', 'Audio Playback Failed', 'The audio file could not be played. Using browser voice instead.');
         fallbackSpeak(cleanContent, langName);
@@ -257,6 +279,10 @@ const ChatApp = () => {
 
       await audio.play();
     } catch (error) {
+      // If aborted (user navigated away or clicked another speak), silently exit
+      if (axios.isCancel(error) || error?.name === 'AbortError' || error?.code === 'ERR_CANCELED') return;
+      if (!isMountedRef.current) return;
+
       console.error("TTS failed:", error);
 
       // Determine the issue for the banner
