@@ -74,13 +74,27 @@ async function generateNextLevel(userId, sessionHistory) {
 function generateLevelsFromRoadmap(roadmapData) {
   if (!Array.isArray(roadmapData)) return [];
   
+  const normalizeTasks = (step) => {
+    const raw = step.tasks || step.todos || [];
+    if (!Array.isArray(raw)) return [];
+    return raw.map((t) => {
+      if (typeof t === "string") return { text: t, done: false };
+      return { text: t.text || t.title || String(t), done: Boolean(t.done) };
+    }).filter((t) => t.text);
+  };
+
   return roadmapData.map((step, index) => ({
-    id: Date.now() + index, // Temp ID for new levels
+    id: Date.now() + index,
     title: step.Goal || step.title || "Step",
     description: step.Description || step.description || "",
-    tasks: [], // Future expansion
-    resources: step.recommendations?.map(r => ({ title: r.title, link: r.link || r.url })) || 
-               step.resources?.map(r => ({ title: r.title, link: r.url })) || [],
+    tasks: normalizeTasks(step),
+    resources:
+      step.recommendations?.map((r) => ({
+        title: r.title,
+        link: r.link || r.url,
+      })) ||
+      step.resources?.map((r) => ({ title: r.title, link: r.url || r.link })) ||
+      [],
     order: index,
     xpReward: 50,
     status: index === 0 ? "unlocked" : "locked",

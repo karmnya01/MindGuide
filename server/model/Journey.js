@@ -19,6 +19,12 @@ const levelSchema = new mongoose.Schema(
         link: { type: String },
       },
     ],
+    tasks: [
+      {
+        text: { type: String, required: true },
+        done: { type: Boolean, default: false },
+      },
+    ],
   },
   { _id: false }
 );

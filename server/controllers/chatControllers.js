@@ -151,144 +151,21 @@ async function getSystemPrompt(counsellorType, language, userId) {
     }
   }
 
-  let domainToneContext = "";
-  if (domain === "financial") {
-    domainToneContext = `
-You are in the FINANCIAL domain. Your communication style is ANALYTICAL and DATA-DRIVEN.
-Ensure your entire response is presented using the following exact structure, incorporating user data:
-
-━━━━━━━━━━ 💰 FINANCIAL SNAPSHOT ━━━━━━━━━━
-(Provide key metrics based on the conversation, e.g. Monthly Income, Estimated Spending, Debts, and Current Savings.)
-
-━━━━━━━━━━ 📊 FINANCIAL HEALTH ━━━━━━━━━━
-(Render progress bars out of 10 and include an overall score, e.g.:)
-Debt Level          ████████░░ 8/10
-Savings Strength    ██░░░░░░░░ 2/10
-Spending Control    ███░░░░░░░ 3/10
-Overall Score: ⚠️ 42/100
-
-━━━━━━━━━━ 🚨 TOP RISKS ━━━━━━━━━━
-- (Use ❌ or ⚠️ lists to outline core identified financial risks)
-
-━━━━━━━━━━ 🎯 AI PRIORITIES ━━━━━━━━━━
-- (Numbered action items, e.g., 1️⃣, 2️⃣, 3️⃣)
-
-━━━━━━━━━━ 📅 MONTHLY ACTION PLAN ━━━━━━━━━━
-(Use a Markdown table to map specific action goals and recommended amounts)
-| Goal | Recommended Amount |
-| :--- | :--- |
-
-(If relevant to user query, add dynamic custom analysis blocks, e.g. CAR PURCHASE ANALYSIS or City Relocation Checks, using the same separator title style)
-
-━━━━━━━━━━ ⏳ FUTURE FORECAST ━━━━━━━━━━
-📅 (Timelines for debt freedom, savings accumulation, or major purchases)
-
-━━━━━━━━━━ ✅ BEST NEXT STEP ━━━━━━━━━━
-(Concise closing advice focused on immediate debt reduction or emergency savings)
+  const domainHints = {
+    financial:
+      "Be clear with numbers, timelines, and trade-offs. Help them see cash flow and risk without lecturing.",
+    emotional:
+      "Validate first, then offer gentle, practical coping ideas. Never sound clinical or dismissive.",
+    academic:
+      "Be encouraging and concrete about study habits, deadlines, and next actions.",
+    career:
+      "Focus on trajectory, skills, and realistic next moves—not generic job-search clichés.",
+    general: "Be warm, direct, and helpful like a trusted mentor in conversation.",
+  };
+  const domainToneContext = `
+DOMAIN: ${domain}
+Tone: ${domainHints[domain] || domainHints.general}
 `;
-  } else if (domain === "emotional") {
-    domainToneContext = `
-You are in the EMOTIONAL domain. Your communication style is SUPPORTIVE and CALMING.
-Ensure your entire response is presented using the following exact structure:
-
-━━━━━━━━━━ 🌸 EMOTIONAL SNAPSHOT ━━━━━━━━━━
-(A brief validation and summary of the user's emotional state)
-
-━━━━━━━━━━ 🧠 STRESS & WELL-BEING ━━━━━━━━━━
-(Render well-being/coping bars and an overall calm score, e.g.:)
-Stress Level        ████████░░ 8/10
-Coping Strength     ████░░░░░░ 4/10
-Calmness Score: 🧘 35/100
-
-━━━━━━━━━━ ⚠️ TOP TRIGGERS ━━━━━━━━━━
-- (Use ❌ or ⚠️ lists to identify mental blockages or stress triggers)
-
-━━━━━━━━━━ 🎯 COPING PRIORITIES ━━━━━━━━━━
-- (Numbered coping exercises or actions, e.g. 1️⃣, 2️⃣, 3️⃣)
-
-━━━━━━━━━━ 🌿 SUPPORTIVE ACTION PLAN ━━━━━━━━━━
-(Use a Markdown table for daily habits and durations/frequencies)
-| Habit/Exercise | Recommended Frequency |
-| :--- | :--- |
-
-━━━━━━━━━━ 🧘 THERAPEUTIC CORNER ━━━━━━━━━━
-(Use markdown blockquote > for a soothing grounding exercise or reflection prompt)
-
-━━━━━━━━━━ ⏳ FORECAST / OUTLOOK ━━━━━━━━━━
-📅 (Optimistic projection of emotional recovery and stress reduction timeline)
-
-━━━━━━━━━━ ✅ BEST NEXT STEP ━━━━━━━━━━
-(1-2 sentences of calming, direct guidance)
-`;
-  } else if (domain === "academic") {
-    domainToneContext = `
-You are in the ACADEMIC domain. Your communication style is ORGANIZED and PRODUCTIVITY-FOCUSED.
-Ensure your entire response is presented using the following exact structure:
-
-━━━━━━━━━━ 🎒 ACADEMIC SNAPSHOT ━━━━━━━━━━
-(A brief summary of current courses, study goals, or exams discussed)
-
-━━━━━━━━━━ 📈 STUDY HEALTH & TRACKING ━━━━━━━━━━
-(Render progress bars and productivity score out of 100, e.g.:)
-Study Consistency   ██████░░░░ 6/10
-Focus Strength      ████████░░ 8/10
-Productivity Score: ⚡ 68/100
-
-━━━━━━━━━━ ⚠️ TOP ACADEMIC RISKS ━━━━━━━━━━
-- (Use ❌ or ⚠️ lists to highlight study blockages or deadline pressures)
-
-━━━━━━━━━━ 🎯 ACADEMIC PRIORITIES ━━━━━━━━━━
-- (Numbered study list priority items, e.g. 1️⃣, 2️⃣, 3️⃣)
-
-━━━━━━━━━━ 📅 STUDY ACTION PLAN ━━━━━━━━━━
-(Use a Markdown table to map out study topics and hourly/weekly targets)
-| Study Topic | Weekly Target Hours |
-| :--- | :--- |
-
-━━━━━━━━━━ ⏳ STUDY FORECAST / TARGETS ━━━━━━━━━━
-📅 (Deadlines, milestone targets, exam readiness forecasts)
-
-━━━━━━━━━━ ✅ BEST NEXT STEP ━━━━━━━━━━
-(1-2 sentences of structured, highly motivating study advice)
-`;
-  } else if (domain === "career") {
-    domainToneContext = `
-You are in the CAREER domain. Your communication style is ROADMAP-ORIENTED.
-Ensure your entire response is presented using the following exact structure:
-
-━━━━━━━━━━ 💼 CAREER SNAPSHOT ━━━━━━━━━━
-(A brief summary of current job profile, technical domain, or target roles)
-
-━━━━━━━━━━ 📊 PROFESSIONAL HEALTH ━━━━━━━━━━
-(Render career health progress bars and score out of 100, e.g.:)
-Skill Alignment     ██████░░░░ 6/10
-Network Strength    ████░░░░░░ 4/10
-Career Score: 🚀 52/100
-
-━━━━━━━━━━ ⚠️ SKILL GAPS & RISKS ━━━━━━━━━━
-- (Use ❌ or ⚠️ lists highlighting job search blockages, missing credentials, or career stagnation risks)
-
-━━━━━━━━━━ 🎯 CAREER PRIORITIES ━━━━━━━━━━
-- (Numbered action priorities, e.g. 1️⃣, 2️⃣, 3️⃣)
-
-━━━━━━━━━━ 📅 CAREER ROADMAP & TIMELINE ━━━━━━━━━━
-(Use a Markdown table to map out transition phases and target durations)
-| Milestone Phase | Target Duration |
-| :--- | :--- |
-
-━━━━━━━━━━ ⏳ CAREER FORECAST ━━━━━━━━━━
-📅 (Timelines for skill readiness, application submission, or job offers)
-
-━━━━━━━━━━ ✅ BEST NEXT STEP ━━━━━━━━━━
-(1-2 sentences of professional, high-agency career progression advice)
-`;
-  } else {
-    domainToneContext = `
-You are in a GENERAL mentorship domain.
-- Keep output visually structured.
-- Begin with a summary snapshot, and use the ━━━━━━━━━━ TITLE ━━━━━━━━━━ visual border style to divide sections.
-`;
-  }
 
   return `You are ${persona.name} — a premium AI intelligence engine on Mind-Guide.
 
@@ -302,83 +179,43 @@ ${memories}
 
 IMPORTANT: Your responses must be entirely in ${language}.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-INTELLIGENCE PROTOCOL — HOW YOU THINK
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Before generating ANY response, you MUST silently execute this analytical pipeline:
-
-1. **DECODE**: What is the user actually asking? What is the surface question vs. the deeper need?
-2. **DIAGNOSE**: What patterns, risks, or blind spots can you identify from context? What would they NOT think to ask about?
-3. **DESIGN**: What is the optimal response structure? Which sections from your domain template are relevant? Skip sections that add no value for THIS specific query.
-4. **DELIVER**: Execute the response with surgical precision. Every word must earn its place.
-
-ANALYTICAL DEPTH REQUIREMENTS:
-- Identify root causes, not just symptoms. If a user says "I can't save money," diagnose WHY (lifestyle inflation? emotional spending? income gap?).
-- Surface hidden risks the user hasn't mentioned. A financial question about buying a car should trigger analysis of opportunity cost, insurance burden, and depreciation — even if the user didn't ask.
-- Provide specific numbers, percentages, timelines, and benchmarks wherever possible. Never say "save more" — say "allocate ₹7,000/month to an emergency fund to reach 3-month coverage by March 2027."
-- Compare options with trade-offs. Don't just recommend — show WHY option A beats option B with concrete reasoning.
-- Reference frameworks when relevant (50/30/20 rule, Eisenhower Matrix, SMART goals, Pomodoro, etc.) but apply them to the user's specific situation, never generically.
+Think through the user's real need before replying, but never show your internal reasoning.
 
 ${domainToneContext}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-VISUAL FORMATTING RULES (NON-NEGOTIABLE)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONVERSATION STYLE (required):
+- Write like a real mentor in chat: natural paragraphs, short bullet lists when helpful, occasional **bold** for emphasis.
+- NEVER use decorative section banners (no ━━━━━━━━━━ lines, no "SNAPSHOT / HEALTH SCORE" dashboards, no ASCII progress bars like ████░░).
+- Do NOT dump a full report in one message unless they asked for a detailed breakdown.
+- Be specific (numbers, timelines, examples) when it helps, woven into normal sentences.
+- End with one clear follow-up question when it moves the conversation forward.
+- Append [[STRESS_LEVEL: X]] at the very end only (X = 1–10). Do not mention this tag to the user.
 
-- **Section Separators**: You MUST divide your response into sections using the ━━━━━━━━━━ EMOJI TITLE ━━━━━━━━━━ banner format from your domain template. These are your primary structural element.
-- **Progress Bars**: Render health/status metrics using block characters: \`████████░░ 8/10\`. Always include an overall composite score out of 100.
-- **Markdown Tables**: Use tables for any structured data — budgets, schedules, comparisons, allocations. Tables must have proper headers and alignment.
-- **Priority Labels**: Tag critical items with \`[PRIORITY: HIGH]\`, \`[ALERT: CRITICAL]\`, \`[RISK: SEVERE]\` to draw attention.
-- **Numbered Actions**: Use 1️⃣ 2️⃣ 3️⃣ for priority lists. Use ❌ ⚠️ ✅ for risk/status indicators.
-- **Blockquote Cards**: Wrap therapeutic exercises, key insights, or warnings in markdown blockquotes (\`>\`) for visual separation.
-- **Conciseness**: Each section should contain 1-3 bullet points or short sentences MAX. If you need more, create a sub-section. Never write a paragraph longer than 2 lines.
-- **Dynamic Sections**: You may ADD custom analysis sections (e.g., ━━━━━━━━━━ 🚗 CAR PURCHASE ANALYSIS ━━━━━━━━━━) when the user's query demands deeper analysis on a specific sub-topic. Use the same separator style.
-- **Smart Omission**: If a section from the template is irrelevant to the current query, SKIP it entirely. Don't force empty sections. Quality over completeness.
+ROADMAP IN CHAT:
+When they ask for a roadmap, learning path, or step-by-step plan:
+1. Give a brief, friendly intro (2–4 sentences)—no dashboard blocks.
+2. Do NOT repeat the steps in prose; the interactive roadmap card below will show them.
+3. Do NOT ask about budget or free vs paid unless they brought it up.
+4. End with the roadmap JSON block only (valid JSON, 3–6 steps):
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-VOICE & INTERACTION RULES
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-- **Zero Fluff**: No preambles. No "Great question!" No "Let me help you with that." No conversational fillers. Start immediately with the first ━━ section banner.
-- **Executive Tone**: Write like a senior consultant delivering a strategy brief. Professional, precise, warm but efficient.
-- **Confidence with Nuance**: State recommendations with conviction but acknowledge trade-offs. Say "I recommend X because Y, but be aware of Z" — not "you could maybe try X."
-- **Proactive Intelligence**: Surface insights the user didn't ask for but needs to hear. A premium AI anticipates, it doesn't just respond.
-- **Closing Interaction**: End EVERY response with a single, sharp follow-up question inside the ✅ BEST NEXT STEP section that drives the conversation forward toward the user's next decision point.
-- **Stress Tag**: At the absolute end of every response, append: [[STRESS_LEVEL: X]] where X is 1-10.
-
-ROADMAP GENERATOR:
-If the user asks for a roadmap, learning path, steps, or a step-by-step guide:
-1. Generate the roadmap immediately in the same response. Do NOT ask about free vs paid resources, budget, or preferred language unless the user explicitly asks for resources, links, courses, or materials.
-2. Focus each step on what to do, in what order, and why — actionable phases and milestones, not link lists.
-3. Only ask a clarifying question if the goal or topic is genuinely unclear (e.g. "roadmap for what?"). Never gate a roadmap behind resource-preference questions.
-4. Append a structured roadmap block at the very end of your response, formatted EXACTLY using the following markdown tag. It must be valid JSON:
 \`\`\`roadmap
 [
   {
-    "title": "Step Name",
-    "description": "What to do in this phase and why it matters."
-  }
-]
-\`\`\`
-5. Include a \`resources\` array on a step ONLY when the user explicitly requested resources. Example with resources:
-\`\`\`roadmap
-[
-  {
-    "title": "Step Name",
-    "description": "Brief description of the step.",
+    "title": "Step title",
+    "description": "What to do and why (2–4 sentences).",
+    "tasks": ["Concrete todo 1", "Concrete todo 2"],
     "resources": [
-      { "title": "Resource Name", "url": "https://example.com" }
+      { "title": "Resource name", "url": "https://real-url.example" }
     ]
   }
 ]
 \`\`\`
 
-RESOURCE CURATION (only when the user explicitly asks for resources):
-- FREE: best YouTube videos and open-source materials for their topic and language (if they specified one).
-- PAID: best courses, books, or certificates (Udemy, Coursera, etc.) only if they said they are willing to pay.
+Every step MUST include:
+- \`tasks\`: 2–4 checkable todos for Journey tracking.
+- \`resources\`: 2–3 real, high-quality links (prefer free: official docs, MDN, freeCodeCamp, reputable YouTube). Use working https URLs only.
 
-Your first message to a new user: Introduce yourself by name with ONE warm sentence about your expertise, then immediately ask a single strategic question to understand their current situation. No fluff. No generic greetings.`;
+First message to a new user: one warm sentence introducing yourself by name, then one focused question about their situation.`;
 }
 
 const HF_ROUTER_BASE_URL =
@@ -458,7 +295,7 @@ async function getGroqResponse(messages) {
     model: "llama-3.3-70b-versatile",
     messages: sanitizedMessages,
     temperature: 0.7,
-    max_tokens: 1024,
+    max_tokens: 2048,
   });
   return response.choices[0]?.message?.content || "";
 }
@@ -534,45 +371,63 @@ const handleTextToSpeech = asyncHandler(async (req, res) => {
   if (!apiKey) {
     return res.status(500).json({
       error: "ELEVENLABS_API_KEY is not configured on server",
+      source: "server_config",
     });
   }
 
   const voiceId = reqVoiceId || "CwhRBWXzGAHq8TQ4Fs17";
 
-  const response = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "xi-api-key": apiKey,
-      },
-      body: JSON.stringify({
-        text: text.trim(),
-        model_id: "eleven_multilingual_v2",
-        output_format: "mp3_44100_128",
-        voice_settings: {
-          stability: 0.55,
-          similarity_boost: 0.8,
-          style: 0.25,
-          use_speaker_boost: true,
+  try {
+    const response = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "xi-api-key": apiKey,
         },
-      }),
-    }
-  );
+        body: JSON.stringify({
+          text: text.trim(),
+          model_id: "eleven_multilingual_v2",
+          output_format: "mp3_44100_128",
+          voice_settings: {
+            stability: 0.55,
+            similarity_boost: 0.8,
+            style: 0.25,
+            use_speaker_boost: true,
+          },
+        }),
+      }
+    );
 
-  if (!response.ok) {
-    const errorBody = await response.text();
-    return res.status(response.status).json({
-      error: errorBody || "ElevenLabs request failed",
+    if (!response.ok) {
+      let errorDetail = "ElevenLabs request failed";
+      try {
+        const errorBody = await response.text();
+        const parsed = JSON.parse(errorBody);
+        errorDetail = parsed.detail?.message || parsed.error || parsed.message || errorBody;
+      } catch (_) {
+        // keep the default error message
+      }
+      return res.status(response.status).json({
+        error: errorDetail,
+        source: "elevenlabs",
+        status: response.status,
+      });
+    }
+
+    const audioArrayBuffer = await response.arrayBuffer();
+    const speed = Number(playbackSpeed) || 1;
+    res.setHeader("Content-Type", "audio/mpeg");
+    res.setHeader("X-TTS-Speed", String(speed));
+    return res.send(Buffer.from(audioArrayBuffer));
+  } catch (fetchError) {
+    console.error("ElevenLabs fetch error:", fetchError);
+    return res.status(502).json({
+      error: `Failed to connect to ElevenLabs: ${fetchError.message}`,
+      source: "network",
     });
   }
-
-  const audioArrayBuffer = await response.arrayBuffer();
-  const speed = Number(playbackSpeed) || 1;
-  res.setHeader("Content-Type", "audio/mpeg");
-  res.setHeader("X-TTS-Speed", String(speed));
-  return res.send(Buffer.from(audioArrayBuffer));
 });
 
 const getChat = asyncHandler(async (req, res) => {
@@ -996,6 +851,133 @@ const handleRoadmapUpdation = asyncHandler(async (req, res) => {
   }
 });
 
+/**
+ * Revise roadmap steps from inline user comments (plan-style feedback).
+ * Body: { steps: RoadmapStep[], comments: { stepIndex, quote, text }[] }
+ */
+const handleReviseRoadmap = asyncHandler(async (req, res) => {
+  const { steps, comments } = req.body;
+  if (!Array.isArray(steps) || steps.length === 0) {
+    res.status(400);
+    throw new Error("steps array is required");
+  }
+  if (!Array.isArray(comments) || comments.length === 0) {
+    res.status(400);
+    throw new Error("At least one comment is required to revise");
+  }
+
+  const feedbackLines = comments
+    .map(
+      (c, i) =>
+        `${i + 1}. Step ${(c.stepIndex ?? 0) + 1}${c.quote ? ` (on "${c.quote}")` : ""}: ${c.text}`
+    )
+    .join("\n");
+
+  const prompt = `You are editing a learning roadmap based on user feedback.
+
+CURRENT ROADMAP (JSON):
+${JSON.stringify(steps, null, 2)}
+
+USER COMMENTS:
+${feedbackLines}
+
+Apply every comment. Keep the same number of steps unless a comment asks to add/remove steps.
+Return ONLY a JSON object: { "steps": [ ... ] }. Each step must have:
+- title (string)
+- description (string)
+- tasks (string array, 2-4 items)
+- resources (array of { title, url } with 2-3 working https links per step)`;
+
+  try {
+    const response = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.4,
+      response_format: { type: "json_object" },
+      max_tokens: 2048,
+    });
+
+    let raw = response.choices[0]?.message?.content || "{}";
+    // Be defensive: models sometimes wrap JSON with extra text.
+    raw = String(raw).trim();
+    const firstBrace = raw.indexOf("{");
+    const lastBrace = raw.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      raw = raw.substring(firstBrace, lastBrace + 1);
+    }
+
+    let parsed = JSON.parse(raw);
+    if (parsed.steps) parsed = parsed.steps;
+    if (parsed.roadmap) parsed = parsed.roadmap;
+    if (!Array.isArray(parsed)) {
+      throw new Error("AI did not return a roadmap array");
+    }
+
+    return res.status(200).json({ steps: parsed });
+  } catch (err) {
+    console.error("Revise roadmap error:", err);
+    res.status(500);
+    throw new Error(err.message || "Failed to revise roadmap");
+  }
+});
+
+/**
+ * Commit chat roadmap to Journey map with todos.
+ * Body: { title?: string, steps: RoadmapStep[] }
+ */
+const handleCommitRoadmapToJourney = asyncHandler(async (req, res) => {
+  const { title, steps } = req.body;
+  if (!Array.isArray(steps) || steps.length === 0) {
+    res.status(400);
+    throw new Error("steps array is required");
+  }
+
+  const levels = generateLevelsFromRoadmap(steps);
+  if (levels.length === 0) {
+    res.status(400);
+    throw new Error("Could not build journey levels from steps");
+  }
+
+  const trackTitle =
+    title?.trim() || steps[0]?.title || "Learning path";
+
+  const newTrack = {
+    id: "trk_" + Date.now().toString(),
+    title: trackTitle,
+    levels,
+  };
+
+  const journey = await Journey.findOneAndUpdate(
+    { userId: req.user._id },
+    {
+      $push: { tracks: newTrack },
+      $setOnInsert: { totalXP: 0 },
+    },
+    { upsert: true, new: true }
+  );
+
+  await User.findByIdAndUpdate(req.user._id, {
+    $set: { roadmap: steps.map((s, i) => ({
+      Goal: s.title,
+      Description: s.description,
+      title: s.title,
+      description: s.description,
+      recommendations: (s.resources || []).map((r) => ({
+        title: r.title,
+        link: r.url,
+      })),
+      isCompleted: false,
+      order: i,
+    })) },
+  });
+
+  return res.status(201).json({
+    success: true,
+    trackId: newTrack.id,
+    journey,
+  });
+});
+
 module.exports = {
   getChat,
   handleSendChat,
@@ -1006,5 +988,7 @@ module.exports = {
   handleDownloadReport,
   handleCreateRoadmap,
   handleRoadmapUpdation,
+  handleReviseRoadmap,
+  handleCommitRoadmapToJourney,
   handleTaskUpdate,
 };

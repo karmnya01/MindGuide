@@ -147,6 +147,36 @@ const updateProgress = asyncHandler(async (req, res) => {
 });
 
 /**
+ * PATCH /api/v1/journey/tasks
+ * Body: { trackId, levelId, taskIndex, done }
+ */
+const updateLevelTask = asyncHandler(async (req, res) => {
+  const { trackId, levelId, taskIndex, done } = req.body;
+
+  if (!trackId || levelId === undefined || taskIndex === undefined || done === undefined) {
+    return res.status(400).json({ success: false, error: "trackId, levelId, taskIndex, and done are required" });
+  }
+
+  const journey = await Journey.findOne({ userId: req.user._id });
+  if (!journey) return res.status(404).json({ success: false, error: "Journey not found" });
+
+  const track = journey.tracks.find((t) => t.id === trackId);
+  if (!track) return res.status(404).json({ success: false, error: "Track not found" });
+
+  const level = track.levels.find((l) => l.id === Number(levelId));
+  if (!level) return res.status(404).json({ success: false, error: "Level not found" });
+
+  if (!level.tasks || !level.tasks[taskIndex]) {
+    return res.status(404).json({ success: false, error: "Task not found" });
+  }
+
+  level.tasks[taskIndex].done = Boolean(done);
+  await journey.save();
+
+  return res.status(200).json({ success: true, data: journey });
+});
+
+/**
  * POST /api/v1/journey/continue
  * Body: { trackId: String }
  * Generates and appends next steps for a fully completed track.
@@ -269,4 +299,11 @@ const createJourney = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { getJourney, createJourney, updateProgress, generateAssessment, continueJourney };
+module.exports = {
+  getJourney,
+  createJourney,
+  updateProgress,
+  updateLevelTask,
+  generateAssessment,
+  continueJourney,
+};

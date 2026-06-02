@@ -6,8 +6,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faCheck, faCompass, faRocket, faTimes, faBookOpen, faStar, faPlay } from "@fortawesome/free-solid-svg-icons";
 
 // ─── Level detail & Quiz modal ───────────────────────────────────────
-const LevelModal = ({ trackId, level, onClose, onComplete }) => {
+const LevelModal = ({ trackId, level, onClose, onComplete, onTaskToggle }) => {
   const [quizMode, setQuizMode] = useState(false);
+  const [localTasks, setLocalTasks] = useState(level?.tasks || []);
   const [questions, setQuestions] = useState([]);
   const [loadingQuiz, setLoadingQuiz] = useState(false);
   const [currentQ, setCurrentQ] = useState(0);
@@ -16,6 +17,22 @@ const LevelModal = ({ trackId, level, onClose, onComplete }) => {
   const [quizFinished, setQuizFinished] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [errorStatus, setErrorStatus] = useState("");
+
+  useEffect(() => {
+    if (level) setLocalTasks(level.tasks || []);
+  }, [level]);
+
+  const toggleTask = async (taskIndex) => {
+    const next = localTasks.map((t, i) =>
+      i === taskIndex ? { ...t, done: !t.done } : t
+    );
+    setLocalTasks(next);
+    try {
+      await onTaskToggle(trackId, level.id, taskIndex, next[taskIndex].done);
+    } catch (e) {
+      setLocalTasks(level.tasks || []);
+    }
+  };
 
   if (!level) return null;
 
@@ -100,6 +117,35 @@ const LevelModal = ({ trackId, level, onClose, onComplete }) => {
             {!quizMode ? (
               <>
                 <p className="text-lg text-slate-600 font-medium leading-relaxed">{level.description}</p>
+                {localTasks.length > 0 && (
+                  <div className="bg-white p-6 rounded-[2rem] border border-slate-100">
+                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4">Step todos</p>
+                    <ul className="space-y-3">
+                      {localTasks.map((task, i) => (
+                        <li key={i} className="flex items-start gap-3">
+                          <button
+                            type="button"
+                            onClick={() => toggleTask(i)}
+                            className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+                              task.done
+                                ? "bg-indigo-600 border-indigo-600 text-white"
+                                : "border-slate-200 hover:border-indigo-400"
+                            }`}
+                          >
+                            {task.done && <FontAwesomeIcon icon={faCheck} className="text-[10px]" />}
+                          </button>
+                          <span
+                            className={`text-[14px] font-medium leading-snug ${
+                              task.done ? "text-slate-400 line-through" : "text-slate-800"
+                            }`}
+                          >
+                            {task.text}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {level.resources && level.resources.length > 0 && (
                   <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
                     <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4">Neural Resources</p>
@@ -304,6 +350,23 @@ const JourneyMap = () => {
   };
 
   useEffect(() => { fetchJourney(); }, []);
+
+  const handleTaskToggle = async (trackId, levelId, taskIndex, done) => {
+    const { data } = await axios.patch("/api/v1/journey/tasks", {
+      trackId,
+      levelId,
+      taskIndex,
+      done,
+    });
+    if (data.success) {
+      setJourney(data.data);
+      if (selectedLevel?.id === levelId) {
+        const track = data.data.tracks.find((t) => t.id === trackId);
+        const lvl = track?.levels.find((l) => l.id === levelId);
+        if (lvl) setSelected(lvl);
+      }
+    }
+  };
 
   const handleComplete = async (trackId, levelId, passed) => {
     try {
@@ -517,7 +580,13 @@ const JourneyMap = () => {
         </div>
 
         {selectedLevel && (
-          <LevelModal trackId={selectedTrackId} level={selectedLevel} onClose={() => { setSelected(null); setSelectedTrack(null); fetchJourney(); }} onComplete={handleComplete} />
+          <LevelModal
+            trackId={selectedTrackId}
+            level={selectedLevel}
+            onClose={() => { setSelected(null); setSelectedTrack(null); fetchJourney(); }}
+            onComplete={handleComplete}
+            onTaskToggle={handleTaskToggle}
+          />
         )}
 
         <CreateJourneyModal

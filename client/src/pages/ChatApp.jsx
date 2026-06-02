@@ -15,7 +15,7 @@ import ReportModal from "../components/ReportModal";
 import ReactMarkdown from "react-markdown";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import AnimatedRoadmap from "../components/AnimatedRoadmap";
+import InteractiveRoadmap from "../components/InteractiveRoadmap";
 import EmotionIndicator from "../components/chat/EmotionIndicator";
 import { Bar } from "react-chartjs-2";
 import { Chart, registerables } from "chart.js";
@@ -53,6 +53,7 @@ const ChatApp = () => {
   const [messageEmotions, setMessageEmotions] = useState({});
   const [showMoodChart, setShowMoodChart] = useState(false);
   const messagesEndRef = useRef(null);
+  const [ttsBanner, setTtsBanner] = useState(null); // { type: 'error'|'warning'|'info', title, message }
 
   const stopAllAudio = () => {
     if (currentAudioRef.current) {
@@ -69,6 +70,11 @@ const ChatApp = () => {
     }
     SpeechRecognition.stopListening();
   };
+
+  // Stop all audio/speech when navigating away from chat
+  useEffect(() => {
+    return () => stopAllAudio();
+  }, []);
 
   const startListening = () => {
     if (!isRecognitionListening) {
@@ -193,10 +199,30 @@ const ChatApp = () => {
     fetchData();
   }, [type, userInfo, language]);
 
+  // --- TTS Banner helper ---
+  const showTtsBanner = (type, title, message) => {
+    setTtsBanner({ type, title, message });
+    setTimeout(() => setTtsBanner(null), 7000);
+  };
+
+  // --- Browser fallback TTS ---
+  const fallbackSpeak = (text, langName) => {
+    if (!window.speechSynthesis) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = playbackSpeed;
+    utterance.lang = VOICE_PROFILES[langName]?.langCode || "en-IN";
+    // Try to pick a matching voice
+    const voices = window.speechSynthesis.getVoices();
+    const match = voices.find(v => v.lang.startsWith(utterance.lang.split('-')[0]));
+    if (match) utterance.voice = match;
+    window.speechSynthesis.speak(utterance);
+  };
+
   const speakMessage = async (content, langName) => {
     stopAllAudio();
     const cleanContent = content.replace(/[*_#`[\]()]/g, "").trim();
     if (!cleanContent) return;
+
     try {
       const response = await axios.post("/api/v1/chat/tts", {
         text: cleanContent,
@@ -204,15 +230,75 @@ const ChatApp = () => {
         playbackSpeed: playbackSpeed,
         voiceId: VOICE_PROFILES[langName]?.voiceId
       }, { responseType: 'blob' });
-      const audioBlob = new Blob([response.data], { type: 'audio/mpeg' });
+
+      // ElevenLabs may return JSON error inside a blob — detect it
+      const blob = response.data;
+      if (blob.type && blob.type.includes('application/json')) {
+        const errorText = await blob.text();
+        let parsed = {};
+        try { parsed = JSON.parse(errorText); } catch (_) {}
+        const reason = parsed.error || parsed.detail?.message || 'Unknown ElevenLabs error';
+        throw new Error(`ElevenLabs: ${reason}`);
+      }
+
+      const audioBlob = new Blob([blob], { type: 'audio/mpeg' });
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
       audio.playbackRate = playbackSpeed;
       currentAudioRef.current = audio;
       currentAudioUrlRef.current = audioUrl;
-      audio.play();
+
+      // Handle audio playback errors
+      audio.onerror = () => {
+        console.error("Audio playback failed, falling back to browser TTS");
+        showTtsBanner('warning', 'Audio Playback Failed', 'The audio file could not be played. Using browser voice instead.');
+        fallbackSpeak(cleanContent, langName);
+      };
+
+      await audio.play();
     } catch (error) {
       console.error("TTS failed:", error);
+
+      // Determine the issue for the banner
+      let issueTitle = 'Voice Synthesis Failed';
+      let issueMessage = 'An unknown error occurred. Using browser voice as fallback.';
+
+      if (error.response) {
+        // Server returned an error status
+        const status = error.response.status;
+        if (status === 401 || status === 403) {
+          issueTitle = 'ElevenLabs API Key Invalid';
+          issueMessage = 'The API key is unauthorized or expired. Falling back to browser voice.';
+        } else if (status === 429) {
+          issueTitle = 'ElevenLabs Quota Exceeded';
+          issueMessage = 'API rate limit or character quota reached. Using browser voice.';
+        } else if (status === 500) {
+          issueTitle = 'Server Configuration Error';
+          issueMessage = 'ElevenLabs API key may not be configured on the server. Using browser voice.';
+        } else {
+          issueTitle = `ElevenLabs Error (${status})`;
+          // Try to extract message from blob response
+          try {
+            const errBlob = error.response.data;
+            const errText = typeof errBlob === 'string' ? errBlob : await errBlob?.text?.();
+            if (errText) {
+              const parsed = JSON.parse(errText);
+              issueMessage = parsed.error || parsed.detail?.message || `Request failed with status ${status}. Using browser voice.`;
+            }
+          } catch (_) {
+            issueMessage = `Request failed with status ${status}. Using browser voice.`;
+          }
+        }
+      } else if (error.message?.includes('ElevenLabs:')) {
+        issueTitle = 'ElevenLabs API Error';
+        issueMessage = error.message.replace('ElevenLabs: ', '') + ' Using browser voice.';
+      } else if (error.code === 'ERR_NETWORK' || error.message?.includes('Network')) {
+        issueTitle = 'Network Error';
+        issueMessage = 'Cannot reach the server. Check your connection. Using browser voice.';
+      }
+
+      showTtsBanner('error', issueTitle, issueMessage);
+      fallbackSpeak(cleanContent, langName);
     }
   };
 
@@ -254,8 +340,16 @@ const ChatApp = () => {
                         const match = /language-(\w+)/.exec(className || "");
                         if (!inline && match && match[1] === "roadmap") {
                           try {
-                            return <div className="mt-4 border border-slate-100 rounded-2xl overflow-hidden shadow-lg"><AnimatedRoadmap data={JSON.parse(String(children))} /></div>;
-                          } catch (err) { console.error(err); }
+                            const steps = JSON.parse(String(children).replace(/\n/g, ""));
+                            return (
+                              <InteractiveRoadmap
+                                data={steps}
+                                trackTitle={steps[0]?.title}
+                              />
+                            );
+                          } catch (err) {
+                            console.error("Roadmap parse error:", err);
+                          }
                         }
                         return !inline ? (
                           <pre className="bg-slate-50 p-5 rounded-2xl mt-4 overflow-x-auto text-sm border border-slate-100 font-mono" {...props}>
@@ -267,18 +361,11 @@ const ChatApp = () => {
                       },
                       p: ({ children }) => {
                         const text = typeof children === "string" ? children : (Array.isArray(children) ? children.map(c => (typeof c === "string" ? c : "")).join("") : "");
-                        if (text.includes("━━━━━━━━━━")) {
-                          return (
-                            <div className="my-5 py-2.5 px-4 bg-gradient-to-r from-indigo-50 via-slate-50 to-indigo-50 border border-indigo-100/60 rounded-xl text-center">
-                              <span className="text-[12px] font-black tracking-[0.15em] uppercase text-indigo-700">{children}</span>
-                            </div>
-                          );
-                        }
-                        if (text.match(/^(.*?)\s{2,}[█░▓]{4,}/)) {
-                          return <p className="mb-1.5 font-mono text-[13px] leading-relaxed text-slate-600 tracking-wide">{children}</p>;
+                        if (text.includes("━━━━━━━━━━") || text.match(/[█░▓]{6,}/)) {
+                          return null;
                         }
                         if (text.startsWith("[[STRESS_LEVEL")) {
-                          return <p className="mt-4 text-[10px] font-bold text-slate-300 tracking-widest uppercase text-right">{children}</p>;
+                          return null;
                         }
                         return <p className="mb-3 last:mb-0 text-[14px] leading-relaxed text-slate-700">{children}</p>;
                       },
@@ -356,6 +443,65 @@ const ChatApp = () => {
   return (
     <div className="flex flex-col h-screen bg-[#F8FAFC] text-slate-900 font-sans overflow-hidden">
       {report && <ReportModal report={report} open={isReportModalOpen} messages={messages} stressHistory={stressHistory} />}
+
+      {/* TTS Error/Fallback Banner */}
+      {ttsBanner && (
+        <motion.div
+          initial={{ opacity: 0, x: 80, y: -20 }}
+          animate={{ opacity: 1, x: 0, y: 0 }}
+          exit={{ opacity: 0, x: 80 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          className="fixed top-6 right-6 z-[9999] max-w-sm w-full"
+        >
+          <div className={`relative rounded-2xl border shadow-2xl backdrop-blur-xl px-5 py-4 ${
+            ttsBanner.type === 'error'
+              ? 'bg-red-50/95 border-red-200 shadow-red-100/50'
+              : ttsBanner.type === 'warning'
+              ? 'bg-amber-50/95 border-amber-200 shadow-amber-100/50'
+              : 'bg-blue-50/95 border-blue-200 shadow-blue-100/50'
+          }`}>
+            <button
+              onClick={() => setTtsBanner(null)}
+              className="absolute top-3 right-3 text-slate-400 hover:text-slate-600 transition-colors text-lg leading-none font-bold"
+              aria-label="Dismiss"
+            >
+              ×
+            </button>
+            <div className="flex items-start gap-3">
+              <div className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-lg ${
+                ttsBanner.type === 'error'
+                  ? 'bg-red-100 text-red-600'
+                  : ttsBanner.type === 'warning'
+                  ? 'bg-amber-100 text-amber-600'
+                  : 'bg-blue-100 text-blue-600'
+              }`}>
+                {ttsBanner.type === 'error' ? '✕' : ttsBanner.type === 'warning' ? '⚠' : 'ℹ'}
+              </div>
+              <div className="min-w-0">
+                <p className={`text-[11px] font-black uppercase tracking-widest mb-1 ${
+                  ttsBanner.type === 'error' ? 'text-red-700' : ttsBanner.type === 'warning' ? 'text-amber-700' : 'text-blue-700'
+                }`}>
+                  {ttsBanner.title}
+                </p>
+                <p className="text-[13px] text-slate-600 leading-snug">
+                  {ttsBanner.message}
+                </p>
+              </div>
+            </div>
+            {/* Auto-dismiss progress bar */}
+            <div className="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl overflow-hidden">
+              <motion.div
+                initial={{ width: '100%' }}
+                animate={{ width: '0%' }}
+                transition={{ duration: 7, ease: 'linear' }}
+                className={`h-full ${
+                  ttsBanner.type === 'error' ? 'bg-red-400' : ttsBanner.type === 'warning' ? 'bg-amber-400' : 'bg-blue-400'
+                }`}
+              />
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       <header className="h-24 bg-white/90 backdrop-blur-xl border-b border-slate-200 px-8 flex items-center justify-between z-30 shrink-0">
         <div className="flex items-center gap-6">

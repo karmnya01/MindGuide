@@ -9,6 +9,8 @@ const {
   handleDownloadReport,
   handleCreateRoadmap,
   handleRoadmapUpdation,
+  handleReviseRoadmap,
+  handleCommitRoadmapToJourney,
   handleTaskUpdate,
 } = require("../controllers/chatControllers");
 const { protect, protectCookie } = require("../middleware/authMiddleware");
@@ -27,6 +29,8 @@ router
   .route("/roadmap")
   .post(protectCookie, handleCreateRoadmap)
   .put(protectCookie, handleTaskUpdate);
-router.post("/updateroadmap", handleRoadmapUpdation);
+router.post("/updateroadmap", protectCookie, handleRoadmapUpdation);
+router.post("/roadmap/revise", protectCookie, handleReviseRoadmap);
+router.post("/roadmap/commit", protectCookie, handleCommitRoadmapToJourney);
 
 module.exports = router;
