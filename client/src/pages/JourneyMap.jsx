@@ -351,6 +351,16 @@ const JourneyMap = () => {
 
   useEffect(() => { fetchJourney(); }, []);
 
+  // Lock body scroll when modal is open to prevent background scroll jumping
+  useEffect(() => {
+    if (selectedLevel) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [selectedLevel]);
+
   const handleTaskToggle = async (trackId, levelId, taskIndex, done) => {
     const { data } = await axios.patch("/api/v1/journey/tasks", {
       trackId,
@@ -542,10 +552,10 @@ const JourneyMap = () => {
                       const isCompleted = level.status === "completed";
                       const isUnlocked = level.status === "unlocked";
 
-                      const ringColor = isCompleted ? "#6366f1" : isUnlocked ? "#94a3b8" : "#E2E8F0";
-                      const fillColor = isCompleted ? "#EEF2FF" : isUnlocked ? "white" : "#F8FAFC";
+                      const ringColor = isCompleted ? "#6366f1" : isUnlocked ? "#94a3b8" : "#94a3b8";
+                      const fillColor = isCompleted ? "#EEF2FF" : isUnlocked ? "white" : "#F1F5F9";
                       const strokeWidth = isCompleted ? 5 : isUnlocked ? 3 : 2;
-                      const opacity = isLocked ? 0.6 : 1;
+                      const opacity = isLocked ? 0.7 : 1;
 
                       return (
                         <g key={level.id} style={{ cursor: isLocked ? "default" : "pointer", opacity }}
@@ -559,13 +569,13 @@ const JourneyMap = () => {
                             className="group-hover:stroke-indigo-600 transition-all duration-300 shadow-sm" />
 
                           <foreignObject x={cx - 12} y={CY - 12} width={24} height={24}>
-                            <div xmlns="http://www.w3.org/1999/xhtml" className={`flex justify-center items-center h-full transition-colors ${isCompleted ? "text-indigo-600" : isUnlocked ? "text-slate-900 font-black" : "text-slate-300"}`} style={{ fontSize: 13, fontFamily: "Inter, sans-serif" }}>
+                            <div xmlns="http://www.w3.org/1999/xhtml" className={`flex justify-center items-center h-full transition-colors ${isCompleted ? "text-indigo-600" : isUnlocked ? "text-slate-900 font-black" : "text-slate-500"}`} style={{ fontSize: 13, fontFamily: "Inter, sans-serif" }}>
                               {isCompleted ? <FontAwesomeIcon icon={faCheck} /> : isLocked ? <FontAwesomeIcon icon={faLock} /> : i + 1}
                             </div>
                           </foreignObject>
 
                           <foreignObject x={cx - 70} y={CY + NODE_R + 15} width={140} height={50}>
-                            <div xmlns="http://www.w3.org/1999/xhtml" className={`text-[11px] leading-tight text-center font-black uppercase tracking-widest px-2 overflow-hidden transition-colors ${isLocked ? "text-slate-300" : "text-slate-900 group-hover:text-indigo-600"}`} style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", fontFamily: "Inter, sans-serif" }}>
+                            <div xmlns="http://www.w3.org/1999/xhtml" className={`text-[11px] leading-tight text-center font-black uppercase tracking-widest px-2 overflow-hidden transition-colors ${isLocked ? "text-slate-500" : "text-slate-900 group-hover:text-indigo-600"}`} style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", fontFamily: "Inter, sans-serif" }}>
                               {level.title}
                             </div>
                           </foreignObject>

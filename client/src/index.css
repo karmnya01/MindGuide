@@ -96,3 +96,14 @@ h1, h2, h3, h4, h5, h6, .font-display, .font-heading {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Prevent text overflow in chat messages and markdown content */
+.prose, .prose * {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+pre, code {
+  white-space: pre-wrap;
+  word-break: break-all;
+}

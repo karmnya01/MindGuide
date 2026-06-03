@@ -27,14 +27,13 @@ const ReportModal = ({ report, open, messages, stressHistory }) => {
 
 
   const handleRoadmapCreation = async () => {
+    const toastId = toast.loading("Generating your personalized roadmap based on this session...", { position: "bottom-center" });
     try {
-      const toastId = toast.loading("Generating your personalized roadmap based on this session...", { position: "bottom-center" });
       const response = await axios.post(
-        "http://localhost:3005/api/v1/chat/roadmap",
+        "/api/v1/chat/roadmap",
         {
           chat: messages,
-        },
-        { withCredentials: true }
+        }
       );
       if (response.status === 200) {
         toast.update(toastId, { render: "Roadmap generated successfully! Taking you there...", type: "success", isLoading: false, autoClose: 3000 });
@@ -44,7 +43,7 @@ const ReportModal = ({ report, open, messages, stressHistory }) => {
       }
     } catch (error) {
       console.error("Error in fetching roadmap", error);
-      toast.error("Failed to generate roadmap: " + (error.response?.data || error.message));
+      toast.update(toastId, { render: "Failed to generate roadmap: " + (error.response?.data?.error || error.response?.data || error.message), type: "error", isLoading: false, autoClose: 5000 });
     }
   };
 
