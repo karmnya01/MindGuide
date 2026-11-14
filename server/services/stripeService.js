@@ -44,7 +44,7 @@ async function handleWebhook(event) {
           stripeCustomerId: session.customer,
           stripeSubscriptionId: session.subscription,
         });
-        console.log(`[Stripe] Pro unlock successful for user ${userId}`);
+        // console.log(`[Stripe] Pro unlock successful for user ${userId}`);
         break;
       }
       case "customer.subscription.deleted": {
@@ -53,7 +53,7 @@ async function handleWebhook(event) {
           { stripeSubscriptionId: subscription.id },
           { subscriptionTier: "free", subscriptionExpiry: null }
         );
-        console.log(`[Stripe] Subscription deleted for ${subscription.id}`);
+        // console.log(`[Stripe] Subscription deleted for ${subscription.id}`);
         break;
       }
       case "invoice.payment_failed": {
@@ -62,7 +62,7 @@ async function handleWebhook(event) {
         break;
       }
       default:
-        console.log(`[Stripe] Unhandled event type: ${event.type}`);
+        // console.log(`[Stripe] Unhandled event type: ${event.type}`);
     }
   } catch (error) {
     console.error("Stripe Webhook Handler Error:", error.message);

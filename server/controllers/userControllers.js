@@ -48,7 +48,7 @@ const authUser = asyncHandler(async (req, res) => {
     throw new Error("Invalid Credentials");
   }
   const token = user.createJWT();
-  console.log("token", user);
+  // console.log("token", user);
   res.cookie("token", token, {
     expires: new Date(Date.now() + 604800000),
   });
@@ -98,7 +98,7 @@ const handleLogout = asyncHandler(async (req, res) => {
 });
 
 const handleGetRoadmap = asyncHandler(async (req, res) => {
-  console.log(req.user);
+  // console.log(req.user);
   try {
     // Assuming you're identifying the user somehow, such as through a JWT token
     const userId = req.user._id; // Replace with actual user identifier
@@ -200,16 +200,16 @@ const handleGetAllReports = asyncHandler(async (req, res) => {
 const handleGetSkills = asyncHandler(async (req, res) => {
   // Make API request to fetch short heading based on the provided roadmap
   // Example:
-  // console.log("heading started");
-  // console.log("goalsss!!!!!!------------>");
+  // // console.log("heading started");
+  // // console.log("goalsss!!!!!!------------>");
   // const { email } = req.user;
   const { email } = req.user;
   const user = await User.findOne({ email });
   const getroadmap = user.roadmap;
   const goals = getroadmap.map((item) => item.Goal);
-  console.log("goals: ", goals);
-  // console.log(typeof getroadmap);
-  // console.log(getroadmap);
+  // console.log("goals: ", goals);
+  // // console.log(typeof getroadmap);
+  // // console.log(getroadmap);
 
   const Heading = [
     {
@@ -222,8 +222,8 @@ const handleGetSkills = asyncHandler(async (req, res) => {
       `,
     },
   ];
-  // console.log("Heading:", response.choices[0].message.content);
-  // console.log(response.choices[0].message.content);
+  // // console.log("Heading:", response.choices[0].message.content);
+  // // console.log(response.choices[0].message.content);
   try {
     const prompt = Heading.map((m) => m.content).join("\n");
     const result = await geminiModel.generateContent(prompt);
@@ -241,7 +241,7 @@ const handleGetSkills = asyncHandler(async (req, res) => {
     });
     res.json(user);
   } catch (error) {
-    console.log("error happened while saving skills", error);
+    // console.log("error happened while saving skills", error);
     res.json("Error while saving User skills!!!");
   }
 });

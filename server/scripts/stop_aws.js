@@ -12,12 +12,12 @@ const s3 = new AWS.S3({
 
 async function emptyAndDeleteBucket() {
   try {
-    console.log(`Checking bucket: ${bucketName}...`);
+    // console.log(`Checking bucket: ${bucketName}...`);
 
     // 1. List and Delete all Objects
     let objects = await s3.listObjectsV2({ Bucket: bucketName }).promise();
     if (objects.Contents.length > 0) {
-      console.log(`Deleting ${objects.Contents.length} objects...`);
+      // console.log(`Deleting ${objects.Contents.length} objects...`);
       const deleteParams = {
         Bucket: bucketName,
         Delete: { Objects: objects.Contents.map((obj) => ({ Key: obj.Key })) },
@@ -36,7 +36,7 @@ async function emptyAndDeleteBucket() {
     }
 
     if (deleteVersions.length > 0) {
-      console.log(`Deleting ${deleteVersions.length} object versions/markers...`);
+      // console.log(`Deleting ${deleteVersions.length} object versions/markers...`);
       await s3.deleteObjects({
         Bucket: bucketName,
         Delete: { Objects: deleteVersions },
@@ -44,13 +44,13 @@ async function emptyAndDeleteBucket() {
     }
 
     // 3. Delete the Bucket
-    console.log(`Deleting bucket: ${bucketName}...`);
+    // console.log(`Deleting bucket: ${bucketName}...`);
     await s3.deleteBucket({ Bucket: bucketName }).promise();
-    console.log("Bucket deleted successfully!");
+    // console.log("Bucket deleted successfully!");
 
   } catch (err) {
     if (err.code === "NoSuchBucket") {
-      console.log("Bucket already deleted or does not exist.");
+      // console.log("Bucket already deleted or does not exist.");
     } else {
       console.error("Error during cleanup:", err.message);
       process.exit(1);

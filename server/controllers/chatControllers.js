@@ -734,7 +734,7 @@ const handleCreateRoadmap = asyncHandler(async (req, res) => {
     ];
 
     const responseText = await getGroqResponse(roadmapMessages);
-    console.log("Raw AI Roadmap Response:", responseText);
+    // console.log("Raw AI Roadmap Response:", responseText);
     
     // Safely extract JSON array if wrapped in markdown or extra text
     let cleaned = responseText.replace(/\[\[STRESS_LEVEL:\s*\d+\]\]/g, "").trim();
@@ -750,7 +750,7 @@ const handleCreateRoadmap = asyncHandler(async (req, res) => {
         cleaned = cleaned.replace(/```json\s*/i, "").replace(/```\s*/g, "").trim();
     }
     
-    console.log("Cleaned Roadmap JSON:", cleaned);
+    // console.log("Cleaned Roadmap JSON:", cleaned);
 
     // Final defensive cleanup for trailing commas or common AI hallucinations
     cleaned = cleaned.replace(/,\s*\]/g, "]"); 
@@ -774,18 +774,18 @@ const handleCreateRoadmap = asyncHandler(async (req, res) => {
         }
     }
     
-    console.log("Parsed Roadmap Data Count:", roadmapData.length);
+    // console.log("Parsed Roadmap Data Count:", roadmapData.length);
     
     await User.findOneAndUpdate(
       { email: req.user.email },
       { $set: { roadmap: roadmapData } }
     );
-    console.log("User Roadmap Updated successfully");
+    // console.log("User Roadmap Updated successfully");
 
     // Auto-Generate and Append Track to Journey
     try {
       const levels = generateLevelsFromRoadmap(roadmapData);
-      console.log("Generated Levels for Journey:", levels.length);
+      // console.log("Generated Levels for Journey:", levels.length);
       
       const newTrack = {
         id: "trk_" + Date.now().toString() + Math.floor(Math.random()*1000),
@@ -802,7 +802,7 @@ const handleCreateRoadmap = asyncHandler(async (req, res) => {
           },
           { upsert: true, new: true }
         );
-        console.log("Journey Track Appended successfully:", journeyUpdate?._id);
+        // console.log("Journey Track Appended successfully:", journeyUpdate?._id);
       }
     } catch (journeyError) {
       console.error("Failed to append journey track (non-fatal):", journeyError);

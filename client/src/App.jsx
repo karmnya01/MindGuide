@@ -29,7 +29,7 @@ axios.defaults.baseURL = "http://localhost:3005";
 axios.defaults.withCredentials = true;
 function App() {
   const userInfo = useSelector((state) => state.mindGuide.userInfo);
-  console.log("userInfo ", userInfo);
+  // console.log("userInfo ", userInfo);
   return (
     <>
       <Router>

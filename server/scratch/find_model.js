@@ -11,10 +11,10 @@ async function listModels() {
       try {
         const model = genAI.getGenerativeModel({ model: m });
         const result = await model.generateContent("Hi");
-        console.log(`Model ${m} works!`);
+        // console.log(`Model ${m} works!`);
         break;
       } catch (e) {
-        console.log(`Model ${m} failed: ${e.message}`);
+        // console.log(`Model ${m} failed: ${e.message}`);
       }
     }
   } catch (error) {

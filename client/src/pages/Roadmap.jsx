@@ -11,16 +11,16 @@ const Roadmap = () => {
     const fetchRoadmap = async () => {
       try {
         const response = await axios.get("/api/v1/user/roadmap");
-        console.log(response);
+        // console.log(response);
         setRoadmapData(response.data.roadmap);
         setLoading(false); // Set loading to false after fetching data
       } catch (err) {
-        console.log(err);
+        // console.log(err);
       }
     };
     fetchRoadmap();
   }, []); //// Empty dependency array to run effect only once on mount
-  console.log(roadmapData);
+  // console.log(roadmapData);
   const completedTasksCount = roadmapData.filter(
     (item) => item.isCompleted
   ).length;
@@ -39,7 +39,7 @@ const Roadmap = () => {
       // Auto-save the update
       await axios.put("/api/v1/chat/roadmap", { roadmap: updatedRoadmapData });
     } catch (err) {
-      console.log("Error auto-saving roadmap:", err);
+      // console.log("Error auto-saving roadmap:", err);
     }
   };
 
@@ -49,7 +49,7 @@ const Roadmap = () => {
         prevIndex === index ? null : index
       );
     } catch (err) {
-      console.log(err);
+      // console.log(err);
     }
   };
 
@@ -58,7 +58,7 @@ const Roadmap = () => {
       // Send a PUT request to update the roadmap with the updated data
       await axios.put("/api/v1/chat/roadmap", { roadmap: roadmapData });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
     }
   };
 
@@ -66,7 +66,7 @@ const Roadmap = () => {
   if (loading) {
     return <div>Loading...</div>;
   }
-  console.log(roadmapData);
+  // console.log(roadmapData);
 
   // If there's no roadmap data, display a message and a return button
   if (roadmapData.length == 0) {

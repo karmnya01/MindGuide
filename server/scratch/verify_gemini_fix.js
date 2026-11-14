@@ -15,7 +15,7 @@ async function testGeminiFixed() {
     });
 
     const result = await chat.sendMessage("Hello!");
-    console.log("Response:", result.response.text());
+    // console.log("Response:", result.response.text());
   } catch (error) {
     console.error("Gemini Error:", error);
   }

@@ -19,7 +19,7 @@ const GetRoadmap = () => {
         setRoadmapData(response.data.roadmap);
         setLoading(false);
       } catch (err) {
-        console.log(err);
+        // console.log(err);
       }
     };
     fetchRoadmap();
@@ -38,10 +38,10 @@ const GetRoadmap = () => {
     try {
       await axios.get("/api/v1/user/getSkills");
       const { data } = await axios.get("/api/v1/user/getUserProfile");
-      console.log(data);
+      // console.log(data);
       dispatch(addUser(data));
     } catch (err) {
-      console.log(err);
+      // console.log(err);
     }
   };
   const handleTaskClick = async (index) => {
@@ -52,7 +52,7 @@ const GetRoadmap = () => {
       setRoadmapData(updatedRoadmapData);
       setUnsavedChanges(true); // Set unsaved changes flag
     } catch (err) {
-      console.log(err);
+      // console.log(err);
     }
   };
 
@@ -62,7 +62,7 @@ const GetRoadmap = () => {
         prevIndex === index ? null : index
       );
     } catch (err) {
-      console.log(err);
+      // console.log(err);
     }
   };
 
@@ -71,7 +71,7 @@ const GetRoadmap = () => {
       await axios.put("/api/v1/chat/roadmap", { roadmap: roadmapData });
       setUnsavedChanges(false); // Reset unsaved changes flag after successful save
     } catch (err) {
-      console.log(err);
+      // console.log(err);
     }
   };
 

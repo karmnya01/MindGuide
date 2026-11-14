@@ -5,7 +5,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 const ProtectRoute = ({ userInfo }) => {
   const navigate = useNavigate();
 
-  console.log("UserInfo", userInfo);
+  // console.log("UserInfo", userInfo);
   useEffect(() => {
     if (!userInfo) {
       navigate("/login");

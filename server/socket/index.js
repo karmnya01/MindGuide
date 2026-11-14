@@ -12,12 +12,12 @@ const initSocket = (server) => {
   });
 
   io.on("connection", (socket) => {
-    console.log("New neural link established:", socket.id);
+    // console.log("New neural link established:", socket.id);
 
     // ─── Room Connection ──────────────────────────────────────────
     socket.on("join_room", async ({ roomId, user }) => {
       socket.join(roomId);
-      console.log(`User ${user.name} joined room: ${roomId}`);
+      // console.log(`User ${user.name} joined room: ${roomId}`);
       
       // Update DB presence
       await StudyRoom.findByIdAndUpdate(roomId, { $addToSet: { participants: user._id } });
@@ -28,7 +28,7 @@ const initSocket = (server) => {
 
     socket.on("leave_room", async ({ roomId, user }) => {
       socket.leave(roomId);
-      console.log(`User ${user.name} left room: ${roomId}`);
+      // console.log(`User ${user.name} left room: ${roomId}`);
       
       // Update DB presence
       await StudyRoom.findByIdAndUpdate(roomId, { $pull: { participants: user._id } });
@@ -65,7 +65,7 @@ const initSocket = (server) => {
     });
 
     socket.on("disconnect", () => {
-      console.log("Neural link severed:", socket.id);
+      // console.log("Neural link severed:", socket.id);
     });
   });
 
