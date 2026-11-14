@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { io } from "socket.io-client";
+import { API_BASE_URL } from "../config/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane, faStopwatch, faUsers, faSignOutAlt, faSmile, faBrain, faRocket, faCheckCircle, faClock } from "@fortawesome/free-solid-svg-icons";
@@ -45,7 +46,7 @@ const LiveRoom = () => {
     useEffect(() => {
         if (!userInfo) return;
 
-        socketRef.current = io("http://localhost:3005", {
+        socketRef.current = io(API_BASE_URL, {
             withCredentials: true,
         });
 

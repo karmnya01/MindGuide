@@ -1,3 +1,5 @@
+import { API_BASE_URL } from "../config/api";
+
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/prop-types */
 import { useRef, useState, useEffect } from "react";
@@ -50,7 +52,7 @@ const ReportModal = ({ report, open, messages, stressHistory }) => {
   const downloadReport = (format = "pdf") => {
     const url = format === "pdf" ? report.pdfUrl : report.csvUrl;
     if (url) {
-        window.open(`http://localhost:3005${url}`, "_blank");
+        window.open(`${API_BASE_URL}${url}`, "_blank");
     } else {
         toast.error("Download link not available yet.");
     }

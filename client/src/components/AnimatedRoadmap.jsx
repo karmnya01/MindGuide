@@ -1,3 +1,5 @@
+import { API_BASE_URL } from "../config/api";
+
 import React from "react";
 import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -84,9 +86,10 @@ const AnimatedRoadmap = ({ data }) => {
                   try {
                     const deadline = new Date();
                     deadline.setDate(deadline.getDate() + 7); // Default 7 day deadline
-                    const response = await fetch("http://localhost:3005/api/v1/contracts", {
+                    const response = await fetch(`${API_BASE_URL}/api/v1/contracts`, {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
+                      credentials: "include",
                       body: JSON.stringify({
                         goalId: `${index}`,
                         title: step.title,

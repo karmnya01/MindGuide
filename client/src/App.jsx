@@ -24,8 +24,9 @@ import Vault from "./pages/Vault.jsx";
 import ReflectionPage from "./pages/ReflectionPage";
 import StudyRooms from "./pages/StudyRooms";
 import LiveRoom from "./pages/LiveRoom";
+import { API_BASE_URL } from "./config/api";
 
-axios.defaults.baseURL = "http://localhost:3005";
+axios.defaults.baseURL = API_BASE_URL;
 axios.defaults.withCredentials = true;
 function App() {
   const userInfo = useSelector((state) => state.mindGuide.userInfo);

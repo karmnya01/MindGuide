@@ -34,7 +34,7 @@ const Profile = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.post("http://localhost:3001/api/v1/user/logout");
+      await axios.post("/api/v1/user/logout");
       dispatch(removeUser());
       toast.success("Logged out successfully");
       navigate("/");
@@ -194,7 +194,7 @@ const Profile = () => {
               const text = e.target.statement.value;
               if (!text.trim()) return;
               try {
-                const { data } = await axios.post("http://localhost:3005/api/v1/user/identity-statements", { text });
+                const { data } = await axios.post("/api/v1/user/identity-statements", { text });
                 toast.success("Identity statement added!");
                 e.target.reset();
                 window.location.reload(); // Refresh to show new statement (simple approach)
@@ -221,7 +221,7 @@ const Profile = () => {
                 <button
                   onClick={async () => {
                     try {
-                      await axios.delete(`http://localhost:3001/api/v1/user/identity-statements/${stmt._id}`);
+                      await axios.delete(`/api/v1/user/identity-statements/${stmt._id}`);
                       toast.success("Statement removed");
                       window.location.reload();
                     } catch (err) {

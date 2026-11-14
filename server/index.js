@@ -22,15 +22,21 @@ const initSocket = require("./socket/index");
 const app = express();
 const server = http.createServer(app);
 const port = 3005;
+const allowedOrigins = (
+  process.env.CLIENT_URL || "https://mindguide-afv4.onrender.com"
+)
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 // Initialize Socket
-const io = initSocket(server);
+const io = initSocket(server, allowedOrigins);
 app.set("io", io);
 
 app.use(bodyParser.json());
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: allowedOrigins,
     credentials: true,
   })
 );

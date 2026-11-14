@@ -11,7 +11,7 @@ const GetAllReports = () => {
     const fetchReports = async () => {
       try {
         const { data } = await axios.get(
-          "http://localhost:3005/api/v1/user/allReports"
+          "/api/v1/user/allReports"
         );
         const sortedData = data.sort(
           (a, b) => new Date(b.date) - new Date(a.date)
@@ -57,9 +57,9 @@ const GetAllReports = () => {
             );
             if (!pdfFileName) return null;
 
-            const pdfUrl = `http://localhost:3005/api/v1/chat/download/${pdfFileName}`;
+            const pdfUrl = `${axios.defaults.baseURL}/api/v1/chat/download/${pdfFileName}`;
             const csvUrl = report.csvPath
-              ? `http://localhost:3005/api/v1/chat/download/${report.csvPath}`
+              ? `${axios.defaults.baseURL}/api/v1/chat/download/${report.csvPath}`
               : null;
 
             return (
