@@ -11,7 +11,8 @@ import RegisterPage from "./pages/RegisterPage";
 import axios from "axios";
 import { ToastContainer } from "react-toastify";
 import { useSelector } from "react-redux";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "@clerk/react";
+import { ClerkOfflineError } from "@clerk/react/errors";
 import ProtectRoute from "./components/ProtectRoute";
 import VisualRoadmap from "./pages/VisualRoadmap";
 import Dashboard from "./pages/Dashboard.jsx";
@@ -70,7 +71,19 @@ function App() {
         }
 
         const auth = authState.current;
-        const token = auth.isSignedIn ? await auth.getToken() : null;
+        let token = null;
+        if (auth.isSignedIn) {
+          try {
+            token = await auth.getToken();
+          } catch (error) {
+            if (ClerkOfflineError.is(error)) {
+              throw new Error(
+                `Clerk is offline, so this API request cannot be authenticated. ${error.message}`
+              );
+            }
+            throw error;
+          }
+        }
         if (token) {
           config.headers = config.headers || {};
           config.headers.Authorization = `Bearer ${token}`;

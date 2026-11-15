@@ -5,7 +5,7 @@ import "./index.css";
 import "react-toastify/dist/ReactToastify.css";
 import { store } from "./redux/store.js";
 import { Provider } from "react-redux";
-import { ClerkProvider } from "@clerk/clerk-react";
+import { ClerkProvider } from "@clerk/react";
 
 // Import your publishable key
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;

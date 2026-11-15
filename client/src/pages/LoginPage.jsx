@@ -1,5 +1,5 @@
 import axios from "axios";
-import { SignInButton, useUser } from "@clerk/clerk-react";
+import { SignInButton, useUser } from "@clerk/react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";

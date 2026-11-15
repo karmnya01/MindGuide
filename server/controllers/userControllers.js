@@ -5,6 +5,12 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const geminiModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 const jwt = require("jsonwebtoken");
+const authCookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  path: "/",
+};
 
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password, pic } = req.body;
@@ -50,6 +56,7 @@ const authUser = asyncHandler(async (req, res) => {
   const token = user.createJWT();
   // console.log("token", user);
   res.cookie("token", token, {
+    ...authCookieOptions,
     expires: new Date(Date.now() + 604800000),
   });
   return res.status(200).json({
@@ -84,7 +91,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
   return res.status(200).json(null);
 });
 const handleLogout = asyncHandler(async (req, res) => {
-  res.clearCookie("token");
+  res.clearCookie("token", authCookieOptions);
   res.status(200).json({ message: "Logged out successfully" });
 });
 
