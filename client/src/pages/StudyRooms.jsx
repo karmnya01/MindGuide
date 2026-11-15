@@ -3,6 +3,7 @@ import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { getAvatarSrc } from "../utils/avatar";
 import { faUsers, faPlus, faSearch, faRocket, faBrain, faCompass, faChevronRight, faTimes, faFire, faGraduationCap } from "@fortawesome/free-solid-svg-icons";
 
 const CATEGORIES = ["DSA", "Web Dev", "Full Stack", "AI/ML", "Exams", "Design", "General"];
@@ -158,7 +159,7 @@ const StudyRooms = () => {
                                 <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-8">
                                     <div className="flex items-center gap-3">
                                         <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 overflow-hidden">
-                                           <img src={room.createdBy?.pic} className="w-full h-full object-cover" />
+                                           <img src={getAvatarSrc(room.createdBy?.pic)} className="w-full h-full object-cover" onError={(event) => { event.currentTarget.src = "/default-avatar.svg"; }} />
                                         </div>
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Host: {room.createdBy?.name || "Neural Assistant"}</p>
                                     </div>

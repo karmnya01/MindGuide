@@ -5,6 +5,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { getAvatarSrc } from "../../utils/avatar";
 import { faSignOutAlt, faEnvelope, faCalendarAlt, faUserGraduate, faStar, faShieldAlt, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 const Profile = () => {
@@ -76,10 +77,10 @@ const Profile = () => {
         <div className="shrink-0 relative">
           <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-slate-800 border-4 border-slate-700 overflow-hidden shadow-2xl relative z-10">
             <img
-              src={userInfo.pic || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"}
+              src={getAvatarSrc(userInfo.pic)}
               alt={userInfo.name}
               className="w-full h-full object-cover"
-              onError={(e) => { e.target.src = "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" }}
+              onError={(event) => { event.currentTarget.src = "/default-avatar.svg"; }}
             />
           </div>
           <div className="absolute -bottom-3 -right-3 w-12 h-12 bg-indigo-500 rounded-full border-4 border-[#111827] flex items-center justify-center text-white shadow-lg z-20">

@@ -20,7 +20,7 @@ const RegisterPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.mindGuide.userInfo);
-  const { user: clerkUser, isLoaded, isSignedIn } = useUser();
+  const { isLoaded, isSignedIn } = useUser();
 
   // Sync Clerk signup with Redux
   useEffect(() => {
@@ -34,6 +34,10 @@ const RegisterPage = () => {
           }
         } catch (err) {
           console.error("Clerk sync failed", err);
+          toast.error(
+            err.response?.data?.message ||
+              "Could not sync your account. Check your Clerk production keys and API connection."
+          );
         }
       };
       syncUser();
@@ -233,7 +237,7 @@ const RegisterPage = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-5">
+            {!isSignedIn ? <div className="grid grid-cols-3 gap-5">
               <SignUpButton mode="modal">
                 <button className="flex items-center justify-center py-4 bg-white/5 border border-white/5 rounded-2xl transition-all hover:bg-white/10 hover:border-indigo-500/20 group">
                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5 opacity-50 group-hover:opacity-100 transition-opacity" />
@@ -249,7 +253,7 @@ const RegisterPage = () => {
                    <img src="https://www.svgrepo.com/show/475654/github-color.svg" alt="GitHub" className="w-5 h-5 invert opacity-50 group-hover:opacity-100 transition-opacity" />
                 </button>
               </SignUpButton>
-            </div>
+            </div> : <p className="text-center text-xs text-slate-400">Your session is active. Syncing your profile…</p>}
           </form>
 
           <div className="mt-12 text-center">

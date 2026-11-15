@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUserCircle, faChartPie, faCompass, faBriefcase, faGem, faUsers, faTachometerAlt } from "@fortawesome/free-solid-svg-icons";
+import { getAvatarSrc } from "../utils/avatar";
 
 const Header = () => {
   const userInfo = useSelector((state) => state.mindGuide.userInfo);
@@ -79,9 +80,12 @@ const Header = () => {
                 <>
                   <div className="w-9 h-9 rounded-full border-2 border-indigo-100 p-0.5 overflow-hidden group-hover:border-indigo-600 transition-colors">
                     <img
-                      src={userInfo.pic}
+                      src={getAvatarSrc(userInfo.pic)}
                       alt={userInfo.name}
                       className="w-full h-full object-cover rounded-full"
+                      onError={(event) => {
+                        event.currentTarget.src = "/default-avatar.svg";
+                      }}
                     />
                   </div>
                   <div className="flex flex-col items-start leading-none pr-2">

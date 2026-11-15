@@ -23,31 +23,14 @@ const protect = asyncHandler(async (req, res, next) => {
     throw new Error("Not authorized, No token");
   }
 });
-const { getAuth, clerkClient } = require("@clerk/express");
+const { getAuth } = require("@clerk/express");
+const { syncClerkUser } = require("../services/clerkUserService");
 
 const protectCookie = asyncHandler(async (req, res, next) => {
   // 1. Check for Clerk Auth (OAuth)
   const { userId } = getAuth(req);
   if (userId) {
-    let user = await UserModel.findOne({ clerkId: userId });
-    
-    // Auto-sync Clerk user to MongoDB
-    if (!user) {
-      try {
-        const clerkUser = await clerkClient.users.getUser(userId);
-        user = await UserModel.create({
-          clerkId: userId,
-          name: `${clerkUser.firstName} ${clerkUser.lastName}`.trim() || clerkUser.username,
-          email: clerkUser.emailAddresses[0].emailAddress,
-          pic: clerkUser.imageUrl,
-          password: "clerk_oauth_user", // Placeholder
-        });
-      } catch (err) {
-        res.status(401);
-        throw new Error("Failed to sync Clerk user: " + err.message);
-      }
-    }
-    req.user = user;
+    req.user = await syncClerkUser(userId);
     return next();
   }
 

@@ -1,4 +1,5 @@
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { useLayoutEffect, useRef } from "react";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import ChatApp from "./pages/ChatApp";
@@ -10,6 +11,7 @@ import RegisterPage from "./pages/RegisterPage";
 import axios from "axios";
 import { ToastContainer } from "react-toastify";
 import { useSelector } from "react-redux";
+import { useAuth } from "@clerk/clerk-react";
 import ProtectRoute from "./components/ProtectRoute";
 import VisualRoadmap from "./pages/VisualRoadmap";
 import Dashboard from "./pages/Dashboard.jsx";
@@ -30,6 +32,57 @@ axios.defaults.baseURL = API_BASE_URL;
 axios.defaults.withCredentials = true;
 function App() {
   const userInfo = useSelector((state) => state.mindGuide.userInfo);
+  const { getToken, isLoaded, isSignedIn } = useAuth();
+  const authState = useRef({ getToken, isLoaded, isSignedIn });
+  const authReadyWaiters = useRef([]);
+  authState.current = { getToken, isLoaded, isSignedIn };
+
+  useLayoutEffect(() => {
+    if (isLoaded) {
+      authReadyWaiters.current.splice(0).forEach((resolve) => resolve());
+    }
+  }, [isLoaded]);
+
+  useLayoutEffect(() => {
+    const interceptorId = axios.interceptors.request.use(async (config) => {
+      const apiOrigin = new URL(API_BASE_URL).origin;
+      const requestOrigin = new URL(
+        config.url || "",
+        config.baseURL || API_BASE_URL
+      ).origin;
+
+      if (requestOrigin === apiOrigin) {
+        if (!authState.current.isLoaded) {
+          await new Promise((resolve, reject) => {
+            let timeoutId;
+            const onAuthReady = () => {
+              window.clearTimeout(timeoutId);
+              resolve();
+            };
+            timeoutId = window.setTimeout(() => {
+              authReadyWaiters.current = authReadyWaiters.current.filter(
+                (waiter) => waiter !== onAuthReady
+              );
+              reject(new Error("Clerk authentication did not initialize in time."));
+            }, 15000);
+            authReadyWaiters.current.push(onAuthReady);
+          });
+        }
+
+        const auth = authState.current;
+        const token = auth.isSignedIn ? await auth.getToken() : null;
+        if (token) {
+          config.headers = config.headers || {};
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      }
+
+      return config;
+    });
+
+    return () => axios.interceptors.request.eject(interceptorId);
+  }, []);
+
   // console.log("userInfo ", userInfo);
   return (
     <>

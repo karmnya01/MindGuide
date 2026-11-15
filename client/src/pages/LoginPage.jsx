@@ -16,24 +16,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const userInfo = useSelector((state) => state.mindGuide.userInfo);
   const dispatch = useDispatch();
-  const { user: clerkUser, isLoaded, isSignedIn } = useUser();
-
-  // Sync Clerk user with Redux
-  useEffect(() => {
-    if (isLoaded && isSignedIn && !userInfo) {
-      const syncUser = async () => {
-        try {
-          const response = await axios.get("/api/v1/user/getUserProfile");
-          if (response.data) {
-            dispatch(addUser(response.data));
-          }
-        } catch (err) {
-          console.error("Clerk sync failed", err);
-        }
-      };
-      syncUser();
-    }
-  }, [isLoaded, isSignedIn, userInfo, dispatch]);
+  const { isLoaded, isSignedIn } = useUser();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,6 +41,8 @@ const LoginPage = () => {
   };
 
   useEffect(() => {
+    if (!isLoaded) return;
+
     const fetchUserProfile = async () => {
       try {
         const response = await axios.get("/api/v1/user/getUserProfile");
@@ -65,11 +50,17 @@ const LoginPage = () => {
           dispatch(addUser(response.data));
         }
       } catch (err) {
-        // Silently fail if not logged in
+        if (isSignedIn) {
+          console.error("Clerk profile sync failed", err);
+          toast.error(
+            err.response?.data?.message ||
+              "Could not sync your account. Check your Clerk production keys and API connection."
+          );
+        }
       }
     };
     fetchUserProfile();
-  }, [dispatch]);
+  }, [dispatch, isLoaded, isSignedIn]);
 
   useEffect(() => {
     if (userInfo) {
@@ -161,7 +152,7 @@ const LoginPage = () => {
                <span className="text-[10px] font-black text-slate-700 uppercase tracking-[0.2em]">Secure Alternative Entry</span>
             </div>
 
-            <div className="grid grid-cols-3 gap-5">
+            {!isSignedIn ? <div className="grid grid-cols-3 gap-5">
               <SignInButton mode="modal">
                 <button className="flex items-center justify-center py-4 bg-white/5 border border-white/5 rounded-2xl transition-all hover:bg-white/10 hover:border-indigo-500/20 group">
                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5 opacity-50 group-hover:opacity-100 transition-opacity" />
@@ -177,7 +168,7 @@ const LoginPage = () => {
                    <img src="https://www.svgrepo.com/show/475654/github-color.svg" alt="GitHub" className="w-5 h-5 invert opacity-50 group-hover:opacity-100 transition-opacity" />
                 </button>
               </SignInButton>
-            </div>
+            </div> : <p className="text-center text-xs text-slate-400">Your session is active. Syncing your profile…</p>}
           </div>
 
           <div className="mt-12 text-center">

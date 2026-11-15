@@ -58,28 +58,19 @@ const authUser = asyncHandler(async (req, res) => {
     password: undefined,
   });
 });
-const { getAuth, clerkClient } = require("@clerk/express");
+const { getAuth } = require("@clerk/express");
+const { syncClerkUser } = require("../services/clerkUserService");
 
 const getUserProfile = asyncHandler(async (req, res) => {
-  // 1. Check for Clerk Auth
   const { userId } = getAuth(req);
   if (userId) {
-    const user = await User.findOne({ clerkId: userId }).select("-password");
-    if (user) return res.json(user);
-    
-    // If not in DB yet, fetch from Clerk and sync
-    const clerkUser = await clerkClient.users.getUser(userId);
-    const newUser = await User.create({
-      clerkId: userId,
-      name: `${clerkUser.firstName} ${clerkUser.lastName}`.trim() || clerkUser.username,
-      email: clerkUser.emailAddresses[0].emailAddress,
-      pic: clerkUser.imageUrl,
-      password: "clerk_oauth_user",
-    });
-    return res.json(newUser);
+    const user = await syncClerkUser(userId);
+    const profile = user.toObject();
+    delete profile.password;
+    return res.json(profile);
   }
 
-  // 2. Fallback to Legacy JWT
+  // Fallback to legacy JWT
   const { token } = req.cookies;
   if (token) {
     try {

@@ -1,11 +1,22 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFilePdf, faDownload, faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
+import { downloadFile } from "../../utils/downloadFile";
 
 const GetAllReports = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const handleDownload = async (fileName) => {
+    try {
+      await downloadFile(`/api/v1/chat/download/${encodeURIComponent(fileName)}`);
+    } catch (error) {
+      console.error("Report download failed", error);
+      toast.error(error.response?.data?.message || "Unable to download report.");
+    }
+  };
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -57,10 +68,7 @@ const GetAllReports = () => {
             );
             if (!pdfFileName) return null;
 
-            const pdfUrl = `${axios.defaults.baseURL}/api/v1/chat/download/${pdfFileName}`;
-            const csvUrl = report.csvPath
-              ? `${axios.defaults.baseURL}/api/v1/chat/download/${report.csvPath}`
-              : null;
+            const csvFileName = report.csvPath || null;
 
             return (
               <div key={index} className="group bg-[#111827] border border-slate-700/60 rounded-2xl p-6 hover:border-indigo-500/50 hover:bg-slate-800 transition-all duration-300 shadow-lg hover:shadow-indigo-500/10 flex flex-col">
@@ -69,13 +77,13 @@ const GetAllReports = () => {
                     <FontAwesomeIcon icon={faFilePdf} className="text-2xl" />
                   </div>
                   <div className="flex gap-2">
-                    <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-slate-800 hover:bg-indigo-600 flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-sm" title="Download PDF Analysis">
+                    <button type="button" onClick={() => handleDownload(pdfFileName)} className="w-8 h-8 rounded-full bg-slate-800 hover:bg-indigo-600 flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-sm" title="Download PDF Analysis">
                       <FontAwesomeIcon icon={faDownload} className="text-xs" />
-                    </a>
-                    {csvUrl && (
-                      <a href={csvUrl} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-slate-800 hover:bg-emerald-600 flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-sm" title="Download CSV Data">
+                    </button>
+                    {csvFileName && (
+                      <button type="button" onClick={() => handleDownload(csvFileName)} className="w-8 h-8 rounded-full bg-slate-800 hover:bg-emerald-600 flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-sm" title="Download CSV Data">
                         <FontAwesomeIcon icon={faDownload} className="text-xs" />
-                      </a>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -90,16 +98,16 @@ const GetAllReports = () => {
                     <span>{reportDate}</span>
                   </div>
                   <div className="flex gap-2 mt-2">
-                    <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-widest font-black text-rose-400 hover:text-rose-300 transition-colors">
+                    <button type="button" onClick={() => handleDownload(pdfFileName)} className="text-[10px] uppercase tracking-widest font-black text-rose-400 hover:text-rose-300 transition-colors">
                       Strategic PDF Analysis
-                    </a>
-                    {csvUrl && (
+                    </button>
+                    {csvFileName && (
                       <span className="text-slate-700">|</span>
                     )}
-                    {csvUrl && (
-                      <a href={csvUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-widest font-black text-emerald-400 hover:text-emerald-300 transition-colors">
+                    {csvFileName && (
+                      <button type="button" onClick={() => handleDownload(csvFileName)} className="text-[10px] uppercase tracking-widest font-black text-emerald-400 hover:text-emerald-300 transition-colors">
                         Excel/CSV Data
-                      </a>
+                      </button>
                     )}
                   </div>
                 </div>

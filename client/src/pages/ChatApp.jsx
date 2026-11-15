@@ -29,6 +29,7 @@ import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import InteractiveRoadmap from "../components/InteractiveRoadmap";
 import EmotionIndicator from "../components/chat/EmotionIndicator";
+import { getAvatarSrc } from "../utils/avatar";
 import { Bar } from "react-chartjs-2";
 import { Chart, registerables } from "chart.js";
 Chart.register(...registerables);
@@ -166,7 +167,12 @@ const ChatApp = () => {
       }
     } catch (err) {
       console.error("Chat error:", err);
-      toast.error(err.response?.data || "Failed to generate response");
+      toast.error(
+        err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.message ||
+          "Failed to generate response"
+      );
     } finally {
       setLoading(false);
     }
@@ -773,7 +779,7 @@ const ChatApp = () => {
           >
             <div className="w-8 h-8 rounded-full overflow-hidden border border-indigo-100">
               <img
-                src={userInfo?.pic}
+                src={getAvatarSrc(userInfo?.pic)}
                 alt={userInfo?.name}
                 className="w-full h-full object-cover"
               />

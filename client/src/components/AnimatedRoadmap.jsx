@@ -1,6 +1,5 @@
-import { API_BASE_URL } from "../config/api";
-
 import React from "react";
+import axios from "axios";
 import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMapSigns, faLink } from "@fortawesome/free-solid-svg-icons";
@@ -86,22 +85,20 @@ const AnimatedRoadmap = ({ data }) => {
                   try {
                     const deadline = new Date();
                     deadline.setDate(deadline.getDate() + 7); // Default 7 day deadline
-                    const response = await fetch(`${API_BASE_URL}/api/v1/contracts`, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      credentials: "include",
-                      body: JSON.stringify({
+                    await axios.post("/api/v1/contracts", {
                         goalId: `${index}`,
                         title: step.title,
                         deadline: deadline.toISOString(),
                         commitmentLevel: "firm"
-                      })
                     });
-                    if (response.ok) {
-                      alert("Committed! Contract created.");
-                    }
+                    alert("Committed! Contract created.");
                   } catch (err) {
                     console.error("Commitment failed", err);
+                    alert(
+                      err.response?.data?.message ||
+                        err.response?.data?.error ||
+                        "Could not create the commitment. Please try again."
+                    );
                   }
                 }}
                 className="mt-6 w-full py-2.5 bg-indigo-500/10 hover:bg-indigo-500 text-indigo-400 hover:text-white border border-indigo-500/30 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300"

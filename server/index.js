@@ -21,9 +21,10 @@ const initSocket = require("./socket/index");
 
 const app = express();
 const server = http.createServer(app);
-const port = 3005;
+const port = Number(process.env.PORT) || 3005;
 const allowedOrigins = (
-  process.env.CLIENT_URL || "https://mindguide-afv4.onrender.com"
+  process.env.CLIENT_URL ||
+  "https://mindguide-frontend.onrender.com,http://localhost:5173"
 )
   .split(",")
   .map((origin) => origin.trim())

@@ -11,7 +11,13 @@ import { ClerkProvider } from "@clerk/clerk-react";
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 if (!PUBLISHABLE_KEY) {
-  throw new Error("Missing Publishable Key");
+  throw new Error("Missing VITE_CLERK_PUBLISHABLE_KEY.");
+}
+
+if (import.meta.env.PROD && PUBLISHABLE_KEY.startsWith("pk_test_")) {
+  console.warn(
+    "This production build is using a Clerk development key. Configure a live Clerk publishable key for deployment."
+  );
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(

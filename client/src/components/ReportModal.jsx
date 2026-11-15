@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "../config/api";
+import { downloadFile } from "../utils/downloadFile";
 
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/prop-types */
@@ -49,10 +50,15 @@ const ReportModal = ({ report, open, messages, stressHistory }) => {
     }
   };
 
-  const downloadReport = (format = "pdf") => {
+  const downloadReport = async (format = "pdf") => {
     const url = format === "pdf" ? report.pdfUrl : report.csvUrl;
     if (url) {
-        window.open(`${API_BASE_URL}${url}`, "_blank");
+      try {
+        await downloadFile(`${API_BASE_URL}${url}`);
+      } catch (error) {
+        console.error("Report download failed", error);
+        toast.error(error.response?.data?.message || "Unable to download report.");
+      }
     } else {
         toast.error("Download link not available yet.");
     }

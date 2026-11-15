@@ -112,9 +112,9 @@ The project follows a standard **MERN Client-Server** architecture. The backend 
 - **Visualization Pattern**: Mermaid.js renders roadmaps as dynamic graphs. `VisualRoadmap.jsx` parses raw JSON into Mermaid syntax on the fly.
 
 # SECURITY
-- **Authentication**: JWT-based session management using `jsonwebtoken` and `bcryptjs`.
+- **Authentication**: Clerk session tokens for OAuth sign-in, with legacy JWT-cookie sessions retained.
 - **Auth Middleware**: `Shield` for protecting backend routes; `ProtectRoute` for frontend navigation.
-- **CSRF/CORS**: Configured in `server/index.js` to allow only the Vite development domain (`localhost:5173`).
+- **CORS**: Configured in `server/index.js` from the comma-separated `CLIENT_URL` allowlist.
 
 # PERFORMANCE
 - **Database Indexing**: Compound indexing on `userId + createdAt` for fast chat history retrieval and `userId + weekStart` for insights.

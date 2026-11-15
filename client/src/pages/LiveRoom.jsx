@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import axios from "axios";
 import { io } from "socket.io-client";
 import { API_BASE_URL } from "../config/api";
+import { getAvatarSrc } from "../utils/avatar";
 import { motion, AnimatePresence } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane, faStopwatch, faUsers, faSignOutAlt, faSmile, faBrain, faRocket, faCheckCircle, faClock } from "@fortawesome/free-solid-svg-icons";
@@ -160,7 +161,7 @@ const LiveRoom = () => {
                         <div key={p._id} className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors group">
                             <div className="relative">
                                 <div className="w-12 h-12 rounded-xl border border-slate-200 overflow-hidden bg-slate-100">
-                                    <img src={p.pic} className="w-full h-full object-cover" />
+                                    <img src={getAvatarSrc(p.pic)} className="w-full h-full object-cover" onError={(event) => { event.currentTarget.src = "/default-avatar.svg"; }} />
                                 </div>
                                 <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white bg-emerald-500 shadow-sm" />
                             </div>
@@ -224,7 +225,7 @@ const LiveRoom = () => {
                                 className={`flex items-start gap-4 ${isMe ? 'flex-row-reverse' : ''}`}
                             >
                                 <div className="w-10 h-10 rounded-xl overflow-hidden border border-slate-200 bg-white shrink-0 shadow-sm">
-                                    <img src={m.sender?.pic} className="w-full h-full object-cover" />
+                                    <img src={getAvatarSrc(m.sender?.pic)} className="w-full h-full object-cover" onError={(event) => { event.currentTarget.src = "/default-avatar.svg"; }} />
                                 </div>
                                 <div className={`max-w-[60%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
                                     <div className="flex items-center gap-2 mb-2 px-1">
