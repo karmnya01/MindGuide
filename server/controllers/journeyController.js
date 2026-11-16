@@ -69,7 +69,7 @@ Output strictly as a JSON object following this EXACT schema:
 
   try {
     const response = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.5,
       response_format: { type: "json_object" }
@@ -212,7 +212,7 @@ Output strictly as a JSON object following this EXACT schema:
 
   try {
     const response = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.5,
       response_format: { type: "json_object" }
@@ -267,7 +267,7 @@ const createJourney = asyncHandler(async (req, res) => {
 
   try {
     const response = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.5,
       response_format: { type: "json_object" }

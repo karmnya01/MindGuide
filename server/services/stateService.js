@@ -30,7 +30,7 @@ async function updateSelfState(userId, messages) {
 
   try {
     const response = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.1,
       response_format: { type: "json_object" }
